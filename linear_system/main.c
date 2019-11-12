@@ -20,8 +20,8 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    float* A = (float*)malloc(n * n * sizeof(float));
-    float* b = (float*)malloc(n * sizeof(float));
+    double* A = (double*)malloc(n * n * sizeof(double));
+    double* b = (double*)malloc(n * sizeof(double));
     if (argc == 2) {
         read_matr_formula(A, b, n);
     } else if (read_matr_file(A, b, n, argv[2]) != 0){
@@ -31,10 +31,10 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    float* x = (float*)malloc(n * sizeof(float));
+    double* x = (double*)malloc(n * sizeof(double));
     clock_t start = clock();
     if (solve_linear_system(A, n, b, x) != 0) {
-        printf("Can't solve linear system");
+        printf("Can't solve linear system\n");
         free(A);
         free(b);
         free(x);

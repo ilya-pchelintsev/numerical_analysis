@@ -1,11 +1,11 @@
 #include "math.h"
 #include "stdio.h"
 
-float* getel(float* A, int n, int row, int col) {
+double* getel(double* A, int n, int row, int col) {
     return A + row * n + col;
 }
 
-void print_solution(float* x, int n, int m) {
+void print_solution(double* x, int n, int m) {
     printf("Solution: ");
     for (int i = 0; i < n && i < m; ++i) {
         printf("%f ", x[i]);
@@ -14,10 +14,10 @@ void print_solution(float* x, int n, int m) {
 }
 
 
-void print_error(float* A, int n, float* b, float* x) {
-    float error = 0;
+void print_error(double* A, int n, double* b, double* x) {
+    double error = 0;
     for (int row = 0; row < n; ++row) {
-        float my_b = 0;
+        double my_b = 0;
         for (int col = 0; col < n; ++col) {
             my_b += *getel(A, n, row, col) * x[col];
         }
@@ -27,7 +27,7 @@ void print_error(float* A, int n, float* b, float* x) {
 }
 
 
-void print_system(float* A, float* b, int n) {
+void print_system(double* A, double* b, int n) {
     for (int row = 0; row < n; ++row) {
         for (int col = 0; col < n; ++col) {
             printf("%f ", *getel(A, n, row, col));
@@ -37,8 +37,8 @@ void print_system(float* A, float* b, int n) {
 }
 
 
-void print_solution_error(float* x, int n) {
-    float solution_error = 0;
+void print_solution_error(double* x, int n) {
+    double solution_error = 0;
     for (int i = 0; i < n; ++i) {
         solution_error += ((1 - (i % 2)) - x[i]) * ((1 - (i % 2)) - x[i]);
     }
@@ -46,6 +46,6 @@ void print_solution_error(float* x, int n) {
 }
 
 
-int is_zero(float x) {
+int is_zero(double x) {
     return fabs(x) < 1e-8;
 }

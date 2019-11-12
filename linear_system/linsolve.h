@@ -1,1 +1,1 @@
-int solve_linear_system(float* A, int n, float* b, float* x);
+int solve_linear_system(double* A, int n, double* b, double* x);
