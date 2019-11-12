@@ -1,0 +1,1 @@
+int solve_linear_system(float* A, int n, float* b, float* x);
