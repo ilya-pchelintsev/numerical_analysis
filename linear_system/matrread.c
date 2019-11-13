@@ -20,9 +20,11 @@ int read_matr_file(double* A, double* b, int n, char* filename) {
 
     for (int i = 0; i < n * n; ++i) {
         if (fscanf(file, "%lf", A + i) != 1) {
+            fclose(file);
             return 2;
         }
     }
+    fclose(file);
 
     set_b_odd_sum(A, b, n);
     return 0;
