@@ -5,6 +5,9 @@
 
 #include "matrread.h"
 
+void set_b_odd_sum(double* A, double* b, int n);
+double f(int i, int j);
+
 void set_b_odd_sum(double* A, double* b, int n) {
     for (int row = 0; row < n; ++row) {
         b[row] = 0;
@@ -34,7 +37,7 @@ int read_matr_file(double* A, double* b, int n, char* filename) {
 }
 
 double f(int i, int j) {
-    return abs(i - j) + 1;
+    return abs(i - j);
 }
 
 int read_matr_formula(double* A, double* b, int n) {

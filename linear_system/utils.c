@@ -48,6 +48,15 @@ void print_solution_error(double* x, int n) {
 }
 
 
-int is_zero(double x) {
-    return fabs(x) < 1e-10;
+int is_zero(double x, double A_norm) {
+    return fabs(x) < 1e-10 * A_norm;
+}
+
+
+double matr_norm(double* A, int n) {
+    double norm = 0;
+    for (int i = 0; i < n * n; ++i) {
+        norm += A[i] * A[i];
+    }
+    return sqrt(norm);
 }
