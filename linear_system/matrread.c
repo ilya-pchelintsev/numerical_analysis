@@ -1,6 +1,9 @@
 #include "utils.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "math.h"
+
+#include "matrread.h"
 
 void set_b_odd_sum(double* A, double* b, int n) {
     for (int row = 0; row < n; ++row) {
@@ -30,11 +33,14 @@ int read_matr_file(double* A, double* b, int n, char* filename) {
     return 0;
 }
 
+double f(int i, int j) {
+    return abs(i - j) + 1;
+}
 
 int read_matr_formula(double* A, double* b, int n) {
     for (int row = 0; row < n; ++row) {
         for (int col = 0; col < n; ++col) {
-            *getel(A, n, row, col) = (rand() % 5000) / 5000.0;
+            *getel(A, n, row, col) = f(row, col);
         }
     }
 

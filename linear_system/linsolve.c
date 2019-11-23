@@ -2,22 +2,27 @@
 #include "stdio.h"
 #include "math.h"
 
+#include "linsolve.h"
+
 void turn_lines(double* A, double* b, int n, int row1, int row2, int start_col) {
-    double c = *getel(A, n, row1, start_col);
-    double s = *getel(A, n, row2, start_col);
+    double *cur_row1, *cur_row2, *end_row1;
+    double old_row1, old_row2, norm, c, s, old_b1, old_b2;
+
+    c = *getel(A, n, row1, start_col);
+    s = *getel(A, n, row2, start_col);
 
     if (is_zero(s)) {
         return;
     }
 
-    double norm = sqrt(c * c + s * s);
+    norm = sqrt(c * c + s * s);
     c /= norm;
     s /= norm;
 
-    double* cur_row1 = getel(A, n, row1, start_col);
-    double* cur_row2 = getel(A, n, row2, start_col);
-    double old_row1, old_row2;
-    for (int col = start_col; col < n; ++col) {        
+    cur_row1 = getel(A, n, row1, start_col);
+    end_row1 = getel(A, n, row1 + 1, 0);
+    cur_row2 = getel(A, n, row2, start_col);
+    while (cur_row1 < end_row1) {
         old_row1 = *cur_row1;
         old_row2 = *cur_row2;
         *cur_row1 =  c * old_row1 + s * old_row2;
@@ -26,8 +31,8 @@ void turn_lines(double* A, double* b, int n, int row1, int row2, int start_col) 
         ++cur_row2;
     }
 
-    double old_b1 = b[row1];
-    double old_b2 = b[row2];
+    old_b1 = b[row1];
+    old_b2 = b[row2];
     b[row1] =  c * old_b1 + s * old_b2;
     b[row2] = -s * old_b1 + c * old_b2;
 }
@@ -43,14 +48,6 @@ void triangular_form(double* A, double* b, int n) {
 
 
 void add_line(double* A, double* b, int n, int dest_row, int src_row, double mult, int start_col) {
-    double* src_row_ptr = getel(A, n, src_row, start_col);
-    double* dest_row_ptr = getel(A, n, dest_row, start_col);
-    for (int col = start_col; col < n; ++col) {
-        *dest_row_ptr += mult * (*src_row_ptr);
-        ++src_row_ptr;
-        ++dest_row_ptr;
-    }
-
     b[dest_row] += mult * b[src_row];
 }
 

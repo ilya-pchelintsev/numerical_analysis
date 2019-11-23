@@ -1,6 +1,8 @@
 #include "math.h"
 #include "stdio.h"
 
+#include "utils.h"
+
 double* getel(double* A, int n, int row, int col) {
     return A + row * n + col;
 }
@@ -23,7 +25,7 @@ void print_error(double* A, int n, double* b, double* x) {
         }
         error += (my_b - b[row]) * (my_b - b[row]);
     }
-    printf("|Ax-b|=%f\n", sqrt(error));
+    printf("|Ax-b|=%e\n", sqrt(error));
 }
 
 
@@ -42,10 +44,10 @@ void print_solution_error(double* x, int n) {
     for (int i = 0; i < n; ++i) {
         solution_error += ((1 - (i % 2)) - x[i]) * ((1 - (i % 2)) - x[i]);
     }
-    printf("Solution error %f\n", sqrt(solution_error));
+    printf("Solution error %e\n", sqrt(solution_error));
 }
 
 
 int is_zero(double x) {
-    return fabs(x) < 1e-8;
+    return fabs(x) < 1e-10;
 }
