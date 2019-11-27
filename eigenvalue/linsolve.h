@@ -1,0 +1,1 @@
+int find_eigenvalues(double* A, int n, double* x, double low, double high, double precision, double* diag);
