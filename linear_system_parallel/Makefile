@@ -1,6 +1,6 @@
 all: solver
 
-FLAGS=
+FLAGS=-pthread
 
 solver: main.o matrread.o linsolve.o utils.o
 	gcc $(FLAGS) main.o matrread.o linsolve.o utils.o -o solver

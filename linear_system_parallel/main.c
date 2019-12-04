@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
         args[i].total_thread_num = num_threads;
         args[i].x = x;
 
-        if (pthread_create(threads + i, 0, (void*)solve_linear_system_parallel, (void*)(args + i))) {
+        if (pthread_create(threads + i, 0, solve_linear_system_parallel, (void*)(args + i))) {
             printf("Can't create thread\n");
             free(A);
             free(x);
@@ -107,6 +107,8 @@ int main(int argc, char** argv) {
 
     free(A);
     free(x);
+    free(args);
+    free(threads);
     free(b);
     return 0;
 }

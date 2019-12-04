@@ -6,7 +6,7 @@
 
 #include "linsolve.h"
 #include "utils.h"
-
+/*
 static void turn_lines(double* A, double* b, int n, int row1, int row2, int start_col, double A_norm, int thread_num, int total_thread_num) {
     double *cur_row1, *cur_row2, *end_row1;
     double old_row1, old_row2, norm, c, s, old_b1, old_b2;
@@ -51,19 +51,32 @@ static void turn_lines(double* A, double* b, int n, int row1, int row2, int star
     }
 }
 
+
+static void rotation_method(double* A, double* b, int n, double A_norm,
+                            int thread_num, int total_thread_num, int col) {
+    for (int row = col + 1; row < n; row++) {
+        turn_lines(A, b, n, col, row, col, A_norm, thread_num, total_thread_num);
+        synchronize(total_thread_num);
+    }
+}
+
+
+*/
+
 static void swap_lines(double* A, double* b, int n, int row1, int row2, int start) {
+    double x;
     for (int i = start; i < n; i++) {
-        double x = A[n * row1 + i];
+        x = A[n * row1 + i];
         A[n * row1 + i] = A[n * row2 + i];
         A[n * row2 + i] = x;
     }
 
-    double x = b[row1];
+    x = b[row1];
     b[row1] = b[row2];
     b[row2] = x;
 }
 
-void add_full_line(double* A, double* b, int n, int src, int dest, int thread_num, int total_thread_num) {
+static void add_full_line(double* A, double* b, int n, int src, int dest) {
     double mult = A[n * dest + src] / A[n * src + src];
     for (int i = src; i < n; i++) {
         A[n * dest + i] -= mult * A[n * src + i];
@@ -91,18 +104,11 @@ static void gauss_method(double* A, double* b, int n, double A_norm,
     }
 
     for (int row = col + 1 + thread_num; row < n; row += total_thread_num) {
-        add_full_line(A, b, n, col, row, thread_num, total_thread_num);
+        add_full_line(A, b, n, col, row);
     }
 }
 
 
-static void rotation_method(double* A, double* b, int n, double A_norm,
-                            int thread_num, int total_thread_num, int col) {
-    for (int row = col + 1; row < n; row++) {
-        turn_lines(A, b, n, col, row, col, A_norm, thread_num, total_thread_num);
-        synchronize(total_thread_num);
-    }
-}
 
 
 static void triangular_form(double* A, double* b, int n, double A_norm,
@@ -130,12 +136,11 @@ static int diagonal_form(double* A, double* b, int n, double A_norm) {
 }
 
 
-int solve_linear_system(double* A, int n, double* b, double* x, int thread_num, int total_thread_num) {
+static int solve_linear_system(double* A, int n, double* b, double* x, int thread_num, int total_thread_num) {
     double A_norm = matr_norm(A, n);
     synchronize(total_thread_num);
 
     triangular_form(A, b, n, A_norm, thread_num, total_thread_num);
-    synchronize(total_thread_num);
 
     if (thread_num == 0) {
         if (diagonal_form(A, b, n, A_norm) != 0) {
@@ -150,8 +155,9 @@ int solve_linear_system(double* A, int n, double* b, double* x, int thread_num, 
     return 0;
 }
 
-void solve_linear_system_parallel(void *args) {
+void* solve_linear_system_parallel(void *args) {
     struct linsolve_args *linsolve_args = (struct linsolve_args*)args;
     linsolve_args->status = solve_linear_system(linsolve_args->A, linsolve_args->n, linsolve_args->b,
         linsolve_args->x, linsolve_args->thread_num, linsolve_args->total_thread_num);
+    return NULL;
 }

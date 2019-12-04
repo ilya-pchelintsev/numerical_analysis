@@ -96,7 +96,7 @@ void synchronize(int total_threads)
     //printf("sync end\n");
 }
 
-double get_time() {
+double get_time(void) {
     struct timeval time;
     gettimeofday(&time, 0);
     return (double)(time.tv_sec + time.tv_usec / 1000000.0);

@@ -9,4 +9,4 @@ void print_solution_error(double* x, int n);
 int is_zero(double x, double A_norm);
 double matr_norm(double* A, int n);
 void synchronize(int total_threads);
-double get_time();
+double get_time(void);

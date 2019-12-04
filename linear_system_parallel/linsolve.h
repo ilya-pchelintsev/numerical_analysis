@@ -11,6 +11,6 @@ struct linsolve_args {
     //struct pthread_barrier_t* barrier;
 };
 
-void solve_linear_system_parallel(void *args);
+void* solve_linear_system_parallel(void *args);
 
 //int solve_linear_system(double* A, int n, double* b, double* x);
