@@ -8,6 +8,8 @@ struct linsolve_args {
     int thread_num;
     int total_thread_num;
     int status;
+    double* sins;
+    double* coss;
     //struct pthread_barrier_t* barrier;
 };
 

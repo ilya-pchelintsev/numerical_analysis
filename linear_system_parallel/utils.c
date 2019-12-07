@@ -6,7 +6,7 @@
 #include "utils.h"
 
 double* getel(double* A, int n, int row, int col) {
-    return A + row * n + col;
+    return A + col * n + row;
 }
 
 void print_solution(double* x, int n, int m) {
@@ -38,6 +38,7 @@ void print_system(double* A, double* b, int n) {
         }
         printf("| %f\n", b[row]);
     }
+    printf("\n");
 }
 
 

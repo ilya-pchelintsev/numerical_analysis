@@ -6,118 +6,74 @@
 
 #include "linsolve.h"
 #include "utils.h"
-/*
-static void turn_lines(double* A, double* b, int n, int row1, int row2, int start_col, double A_norm, int thread_num, int total_thread_num) {
-    double *cur_row1, *cur_row2, *end_row1;
-    double old_row1, old_row2, norm, c, s, old_b1, old_b2;
 
-    c = *getel(A, n, row1, start_col);
-    s = *getel(A, n, row2, start_col);
+static void turn_column_fill_sin_cos(double* A, double* b, int n, int col, double A_norm, 
+                                     int thread_num, int total_thread_num,
+                                     double* sins, double* coss) {
+    double* row_start_ptr, *cur_row_ptr;
+    row_start_ptr = getel(A, n, col, col);
+    cur_row_ptr = getel(A, n, col + 1, col);
 
-    if (is_zero(s, A_norm)) {
-        return;
-    }
-
-    norm = sqrt(c * c + s * s);
-    c /= norm;
-    s /= norm;
-
-    cur_row1 = getel(A, n, row1, start_col) + thread_num + 1;
-    end_row1 = getel(A, n, row1 + 1, 0);
-    cur_row2 = getel(A, n, row2, start_col) + thread_num + 1;
-    while (cur_row1 < end_row1) {
-        old_row1 = *cur_row1;
-        old_row2 = *cur_row2;
-        *cur_row1 =  c * old_row1 + s * old_row2;
-        *cur_row2 = -s * old_row1 + c * old_row2;
-        cur_row1 += total_thread_num;
-        cur_row2 += total_thread_num;
-    }
-
-    synchronize(total_thread_num);
-
-    if (thread_num == 0) {
-        cur_row1 = getel(A, n, row1, start_col);
-        cur_row2 = getel(A, n, row2, start_col);
-        old_row1 = *cur_row1;
-        old_row2 = *cur_row2;
-        *cur_row1 =  c * old_row1 + s * old_row2;
-        *cur_row2 = -s * old_row1 + c * old_row2;
-
-        old_b1 = b[row1];
-        old_b2 = b[row2];
-        b[row1] =  c * old_b1 + s * old_b2;
-        b[row2] = -s * old_b1 + c * old_b2;
-    }
-}
-
-
-static void rotation_method(double* A, double* b, int n, double A_norm,
-                            int thread_num, int total_thread_num, int col) {
     for (int row = col + 1; row < n; row++) {
-        turn_lines(A, b, n, col, row, col, A_norm, thread_num, total_thread_num);
-        synchronize(total_thread_num);
-    }
-}
+        double old_row1, old_row2, norm;
 
-
-*/
-
-static void swap_lines(double* A, double* b, int n, int row1, int row2, int start) {
-    double x;
-    for (int i = start; i < n; i++) {
-        x = A[n * row1 + i];
-        A[n * row1 + i] = A[n * row2 + i];
-        A[n * row2 + i] = x;
-    }
-
-    x = b[row1];
-    b[row1] = b[row2];
-    b[row2] = x;
-}
-
-static void add_full_line(double* A, double* b, int n, int src, int dest) {
-    double mult = A[n * dest + src] / A[n * src + src];
-    for (int i = src; i < n; i++) {
-        A[n * dest + i] -= mult * A[n * src + i];
-    }
-
-    b[dest] -= mult * b[src];
-}
-
-static void gauss_method(double* A, double* b, int n, double A_norm,
-                         int thread_num, int total_thread_num, int col) {
-    if (thread_num == 0) {
-        int max_row = col;
-        for (int i = col + 1; i < n; i++) {
-            if (A[i * n + col] > A[n * max_row + col])
-                max_row = i;
+        norm = sqrt((*cur_row_ptr) * (*cur_row_ptr) + 
+                    (*row_start_ptr) * (*row_start_ptr));
+        
+        if (fabs(norm) < EPS * A_norm) {
+            coss[row] = 1;
+            sins[row] = 0;
+        } else {
+            coss[row] = (*row_start_ptr) / norm;
+            sins[row] = (*cur_row_ptr) / norm;
         }
-        if (max_row != col) {
-            swap_lines(A, b, n, col, max_row, col);
-        }
-    }
-    synchronize(total_thread_num);
 
-    if (fabs(A[col * n + col]) < EPS * A_norm) {
-        return;
-    }
+        old_row1 = *row_start_ptr;
+        old_row2 = *cur_row_ptr;
+        *row_start_ptr =  coss[row] * old_row1 + sins[row] * old_row2;
+        *cur_row_ptr =   -sins[row] * old_row1 + coss[row] * old_row2;
 
-    for (int row = col + 1 + thread_num; row < n; row += total_thread_num) {
-        add_full_line(A, b, n, col, row);
+        old_row1 = b[col];
+        old_row2 = b[row];
+        b[col] =  coss[row] * old_row1 + sins[row] * old_row2;
+        b[row] = -sins[row] * old_row1 + coss[row] * old_row2;
+
+        //print_system(A, b, n);
+        ++cur_row_ptr;
     }
 }
 
-
+static void turn_column(double* A, double* b, int n, int col, int start_row, double A_norm, 
+                                     int thread_num, int total_thread_num,
+                                     double* sins, double* coss) {
+    double* row_start_ptr, *cur_row_ptr;
+    row_start_ptr = getel(A, n, start_row, col);
+    cur_row_ptr = getel(A, n, start_row + 1, col);
+    
+    for (int row = start_row + 1; row < n; row++) {
+        double old_row1, old_row2;
+        old_row1 = *row_start_ptr;
+        old_row2 = *cur_row_ptr;
+        *row_start_ptr =  coss[row] * old_row1 + sins[row] * old_row2;
+        *cur_row_ptr =   -sins[row] * old_row1 + coss[row] * old_row2;
+        ++cur_row_ptr;
+    }
+}
 
 
 static void triangular_form(double* A, double* b, int n, double A_norm,
-                            int thread_num, int total_thread_num) {
+                            int thread_num, int total_thread_num,
+                            double* sins, double* coss) {
     for (int col = 0; col < n; ++col) {
-        gauss_method(A, b, n, A_norm, thread_num, total_thread_num, col);
+        if (thread_num == 0) {
+            turn_column_fill_sin_cos(A, b, n, col, A_norm, thread_num, total_thread_num, sins, coss);
+        }
         synchronize(total_thread_num);
 
-        //rotation_method(A, b, n, A_norm, thread_num, total_thread_num, col);
+        for (int col2 = col + 1 + thread_num; col2 < n; col2 += total_thread_num) {
+            turn_column(A, b, n, col2, col, A_norm, thread_num, total_thread_num, sins, coss);
+        }
+        synchronize(total_thread_num);
     }
 }
 
@@ -136,11 +92,13 @@ static int diagonal_form(double* A, double* b, int n, double A_norm) {
 }
 
 
-static int solve_linear_system(double* A, int n, double* b, double* x, int thread_num, int total_thread_num) {
+static int solve_linear_system(double* A, int n, double* b, double* x, 
+                               int thread_num, int total_thread_num,
+                               double* sins, double* coss) {
     double A_norm = matr_norm(A, n);
     synchronize(total_thread_num);
 
-    triangular_form(A, b, n, A_norm, thread_num, total_thread_num);
+    triangular_form(A, b, n, A_norm, thread_num, total_thread_num, sins, coss);
 
     if (thread_num == 0) {
         if (diagonal_form(A, b, n, A_norm) != 0) {
@@ -158,6 +116,7 @@ static int solve_linear_system(double* A, int n, double* b, double* x, int threa
 void* solve_linear_system_parallel(void *args) {
     struct linsolve_args *linsolve_args = (struct linsolve_args*)args;
     linsolve_args->status = solve_linear_system(linsolve_args->A, linsolve_args->n, linsolve_args->b,
-        linsolve_args->x, linsolve_args->thread_num, linsolve_args->total_thread_num);
+        linsolve_args->x, linsolve_args->thread_num, linsolve_args->total_thread_num,
+        linsolve_args->sins, linsolve_args->coss);
     return NULL;
 }

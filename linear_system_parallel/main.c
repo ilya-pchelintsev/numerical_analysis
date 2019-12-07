@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv) {
     int n, num_threads;
-    double *A, *b, *x;
+    double *A, *b, *x, *sins, *coss;
     pthread_t *threads;
     double start_time, end_time;
     struct linsolve_args *args;
@@ -54,6 +54,8 @@ int main(int argc, char** argv) {
     threads = (pthread_t*)malloc(num_threads * sizeof(pthread_t));
     x = (double*)malloc(n * sizeof(double));
     args = (struct linsolve_args*)malloc(num_threads * sizeof(struct linsolve_args));
+    sins = (double*)malloc(n * sizeof(double));
+    coss = (double*)malloc(n * sizeof(double));
 
     start_time = get_time();
     for (int i = 0; i < num_threads; i++) {
@@ -63,6 +65,8 @@ int main(int argc, char** argv) {
         args[i].thread_num = i;
         args[i].total_thread_num = num_threads;
         args[i].x = x;
+        args[i].sins = sins;
+        args[i].coss = coss;
 
         if (pthread_create(threads + i, 0, solve_linear_system_parallel, (void*)(args + i))) {
             printf("Can't create thread\n");
@@ -71,6 +75,8 @@ int main(int argc, char** argv) {
             free(b);
             free(args);
             free(threads);
+            free(coss);
+            free(sins);
             return 0;
         }
     }
@@ -84,6 +90,8 @@ int main(int argc, char** argv) {
        free(A);
        free(b);
        free(x);
+       free(coss);
+       free(sins);
        return 0;
     }
     end_time = get_time();
@@ -101,6 +109,8 @@ int main(int argc, char** argv) {
         printf("Can't read matrix from file to compute |Ax-y|");
         free(A);
         free(b);
+        free(coss);
+        free(sins);
         return 0;
     }
     print_error(A, n, b, x);
@@ -110,5 +120,7 @@ int main(int argc, char** argv) {
     free(args);
     free(threads);
     free(b);
+    free(coss);
+    free(sins);
     return 0;
 }

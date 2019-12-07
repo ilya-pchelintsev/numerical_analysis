@@ -5,10 +5,7 @@
 
 #include "matrread.h"
 
-void set_b_odd_sum(double* A, double* b, int n);
-double f(int i, int j);
-
-void set_b_odd_sum(double* A, double* b, int n) {
+static void set_b_odd_sum(double* A, double* b, int n) {
     for (int row = 0; row < n; ++row) {
         b[row] = 0;
         for (int col = 0; col < n; col += 2) {
@@ -24,10 +21,12 @@ int read_matr_file(double* A, double* b, int n, char* filename) {
         return 1;
     }
 
-    for (int i = 0; i < n * n; ++i) {
-        if (fscanf(file, "%lf", A + i) != 1) {
-            fclose(file);
-            return 2;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; j++) {
+            if (fscanf(file, "%lf", getel(A, n, i, j)) != 1) {
+                fclose(file);
+                return 2;
+            }
         }
     }
     fclose(file);
@@ -36,7 +35,7 @@ int read_matr_file(double* A, double* b, int n, char* filename) {
     return 0;
 }
 
-double f(int i, int j) {
+static double f(int i, int j) {
     return abs(i - j);
 }
 
