@@ -40,6 +40,8 @@ int main(int argc, char** argv) {
     b = (double*)malloc(n * sizeof(double));
     if (!b) {
         printf("Can't allocate memory\n");
+        free(A);
+        return 0;
     }
 
     if (argc == 3) {
@@ -56,6 +58,15 @@ int main(int argc, char** argv) {
     args = (struct linsolve_args*)malloc(num_threads * sizeof(struct linsolve_args));
     sins = (double*)malloc(n * sizeof(double));
     coss = (double*)malloc(n * sizeof(double));
+    if (!threads || !x || !args || !sins || !coss) {
+        printf("can't allocate memory\n");
+        if (threads) free(threads);
+        if (x) free(x);
+        if (args) free(args);
+        if (sins) free(sins);
+        if (coss) free(coss);
+        return 0;
+    }
 
     start_time = get_time();
     for (int i = 0; i < num_threads; i++) {
@@ -70,6 +81,9 @@ int main(int argc, char** argv) {
 
         if (pthread_create(threads + i, 0, solve_linear_system_parallel, (void*)(args + i))) {
             printf("Can't create thread\n");
+            for (int j = 0; j < i - 1; j++) {
+                pthread_kill(threads[j], 0);
+            }
             free(A);
             free(x);
             free(b);
